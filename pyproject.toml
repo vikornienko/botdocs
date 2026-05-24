@@ -24,3 +24,37 @@ dev = [
     "python-decouple-stubs>=3.8.0.4",
     "ruff>=0.15.14",
 ]
+
+# BUILD SYSTEM
+# Используем hatchling как backend — стандарт для современных Python-проектов
+# с uv. Указываем packages чтобы uv/hatchling знал, где искать исходники
+# при src-layout.
+# ──────────────────────────────────────────────────────────────────────────────
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+# Говорим hatchling, что пакет находится в src/, а не в корне
+packages = ["src"]
+
+# Pytest coverage configuration
+[tool.coverage.run]
+source = ["src"]
+branch = true
+omit = [
+    "src/bot.py",
+    "*/__init__.py",
+    "*/migrations/*",
+]
+
+[tool.coverage.report]
+fail_under = 70
+show_missing = true
+exclude_lines = [
+    "pragma: no cover",
+    "if TYPE_CHECKING:",
+    "if __name__ == .__main__.:",
+    "raise NotImplementedError",
+    "@abstractmethod",
+]

@@ -24,6 +24,9 @@ exclude = [
     ".git",
     ".mypy_cache",
     "migrations",      # если используете Alembic/SQLAlchemy
+    "htmlcov",
+    ".pytest_cache",
+    ".egg-info"
 ]
 
 # Показывать исправленные нарушения при --fix
@@ -143,10 +146,12 @@ suppress-dummy-args = true
 # S101 — использование assert (стандарт pytest)
 # ANN — не требуем аннотаций в тестовых функциях
 # PLR2004 — "магические числа" в assert-ах
-"tests/**/*.py" = ["S101", "ANN", "PLR2004"]
+"tests/**/*.py" = ["S101", "ANN", "PLR2004", "S106", "PT011", "ANN001", "ANN002", "ANN003", "ANN201", "ANN202"]
 # В __init__.py разрешаем неиспользуемые импорты (F401),
 # так как это стандартный способ реэкспорта в aiogram-проектах
 "**/__init__.py" = ["F401", "F403"]
+"conftest.py" = ["ANN", "S101"]
+"tests/**/conftest.py" = ["ANN"]
 
 # ──────────────────────────────────────────────
 # ФОРМАТТЕР
