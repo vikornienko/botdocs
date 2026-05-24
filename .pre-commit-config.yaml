@@ -1,0 +1,109 @@
+# .pre-commit-config.yaml
+# Документация: https://pre-commit.com/
+#
+# ВАЖНО: Все хуки используют repo: local, что означает,
+# что инструменты берутся из ЛОКАЛЬНОГО виртуального окружения uv.
+# Это гарантирует:
+#   1. Согласованность версий между разработчиком и CI/CD.
+#   2. Отсутствие скачивания внешних зависимостей при каждом коммите.
+#   3. Единый источник правды — pyproject.toml / зависимости проекта.
+
+# Версия конфигурационного формата pre-commit.
+default_language_version:
+  python: python3.13
+
+repos:
+  # ────────────────────────────────────────────
+  # ГРУППА 1: БАЗОВЫЕ ПРОВЕРКИ ФАЙЛОВ
+  # Запускаются первыми — быстрые, не требуют Python-окружения.
+  # ────────────────────────────────────────────
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v6.0.0
+    hooks:
+      # Запрещает коммит незавершённых merge-конфликтов.
+      # Критично: случайный коммит "<<<<<<< HEAD" сломает бота.
+      - id: check-merge-conflict
+
+      # Проверяет синтаксис .yaml-файлов (этот же файл, docker-compose и т.д.)
+      - id: check-yaml
+
+      # Проверяет синтаксис .toml-файлов (pyproject.toml, ruff.toml).
+      - id: check-toml
+
+      # Запрещает добавлять большие файлы в git (по умолчанию > 500 KB).
+      # Предотвращает случайный коммит .db, медиафайлов и т.д.
+      - id: check-added-large-files
+        args: ["--maxkb=500"]
+
+      # Гарантирует пустую строку в конце каждого файла (PEP 8).
+      - id: end-of-file-fixer
+
+      # Убирает trailing whitespace.
+      # Важно для чистоты diff-ов в git.
+      - id: trailing-whitespace
+        args: ["--markdown-linebreak-ext=md"]
+
+      # Запрещает коммитить приватные ключи и токены напрямую.
+      # Для Telegram BOT_TOKEN это особенно актуально!
+      - id: detect-private-key
+
+      # Проверяет синтаксис Python-файлов через ast.parse.
+      # Ловит SyntaxError до запуска линтеров.
+      - id: check-ast
+
+      # Запрещает debug-statements (print, pdb, ipdb и т.д.).
+      # В handler-ах бота случайный print() — частая ошибка.
+      - id: debug-statements
+
+  # ────────────────────────────────────────────
+  # ГРУППА 2: RUFF — ЛИНТИНГ И ФОРМАТИРОВАНИЕ
+  # Используем repo: local — ruff установлен через uv.
+  # ────────────────────────────────────────────
+  - repo: local
+    hooks:
+      # Хук 1: ruff check — линтинг с автоисправлением.
+      # Запускается ПЕРЕД форматированием, так как некоторые
+      # исправления (например, удаление импортов) влияют на форматирование.
+      - id: ruff-check
+        name: "ruff: lint & auto-fix"
+        # Используем ruff из виртуального окружения проекта.
+        # uv создаёт .venv в корне проекта.
+        language: system
+        entry: uv run ruff check --fix --exit-non-zero-on-fix
+        # На Linux/macOS замените на:
+        # entry: .venv/bin/ruff check --fix --exit-non-zero-on-fix
+        types: [python]
+        # Передаём только изменённые файлы (pass_filenames=true по умолчанию).
+        # Это ускоряет работу хука при большом проекте.
+        args: []
+
+      # Хук 2: ruff format — форматирование кода.
+      # Запускается ПОСЛЕ линтинга.
+      # --check в CI, без --check локально (исправляет на месте).
+      - id: ruff-format
+        name: "ruff: format"
+        language: system
+        entry: uv run ruff format
+        # На Linux/macOS: entry: .venv/bin/ruff format
+        types: [python]
+
+  # ────────────────────────────────────────────
+  # ГРУППА 3: MYPY — СТАТИЧЕСКАЯ ПРОВЕРКА ТИПОВ
+  # mypy запускается последним: он тяжелее ruff,
+  # и имеет смысл только если код уже прошёл линтинг.
+  # ────────────────────────────────────────────
+  - repo: local
+    hooks:
+      - id: mypy
+        name: "mypy: type checking"
+        language: system
+        entry: uv run mypy
+        # На Linux/macOS: entry: .venv/bin/mypy
+        types: [python]
+        # ВАЖНО: передаём весь пакет, а не отдельные файлы.
+        # mypy нужен полный контекст проекта для корректной
+        # проверки импортов между модулями (роутеры, фильтры и т.д.)
+        pass_filenames: false
+        args:
+          - "src"          # ваш пакет с кодом бота
+          - "--config-file=mypy.ini"
