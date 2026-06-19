@@ -33,12 +33,15 @@ wheels = [
 ]
 
 [[package]]
-name = "aiogram-tests"
+name = "aiogram-test-framework"
 version = "1.0.3"
 source = { registry = "https://pypi.org/simple" }
-sdist = { url = "https://files.pythonhosted.org/packages/46/0e/5cd670e9a05fb1b66d1b860b500784c352758f618e5171ac6de88185e94a/aiogram_tests-1.0.3.tar.gz", hash = "sha256:cdc78e9a65e205a744e944361a844c0f764f7777718dde087821000d49d354b3", size = 10550, upload-time = "2022-10-26T16:56:18.095Z" }
+dependencies = [
+    { name = "aiogram" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/42/d4/8b0ddc3837d97537a7914eb637f3d0287bdb7c64c38246e966c582bb70fd/aiogram_test_framework-1.0.3.tar.gz", hash = "sha256:2fc1acbc69d04f3338cf5750c35bf69d7e692954ae45e4cd3139d020d12e1223", size = 31262, upload-time = "2026-02-01T10:24:33.243Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/8a/89/2537d3596abba90c09c977cb921b2c9d1013df8a1250761cf5d26c5605c5/aiogram_tests-1.0.3-py3-none-any.whl", hash = "sha256:b92fc4dbb652ed115bbcef08d2e020a8e86e575217fb44876d926b5cd681aca0", size = 12230, upload-time = "2022-10-26T16:56:16.388Z" },
+    { url = "https://files.pythonhosted.org/packages/0c/90/948c03128e43fd58e5495adc60eecc50a045a92cb2df4248b6f2ee1148c3/aiogram_test_framework-1.0.3-py3-none-any.whl", hash = "sha256:f0867a85e8b9c6b67dca2a3141d46202d71b5bb242fd664906d68169c6203b0c", size = 20085, upload-time = "2026-02-01T10:24:32.22Z" },
 ]
 
 [[package]]
@@ -200,7 +203,7 @@ wheels = [
 [[package]]
 name = "botdocs"
 version = "0.1.0"
-source = { virtual = "." }
+source = { editable = "." }
 dependencies = [
     { name = "aiogram" },
     { name = "aiosqlite" },
@@ -210,7 +213,7 @@ dependencies = [
 
 [package.dev-dependencies]
 dev = [
-    { name = "aiogram-tests" },
+    { name = "aiogram-test-framework" },
     { name = "factory-boy" },
     { name = "faker" },
     { name = "freezegun" },
@@ -234,7 +237,7 @@ requires-dist = [
 
 [package.metadata.requires-dev]
 dev = [
-    { name = "aiogram-tests", specifier = ">=1.0.3" },
+    { name = "aiogram-test-framework", specifier = ">=1.0.3" },
     { name = "factory-boy", specifier = ">=3.3.3" },
     { name = "faker", specifier = ">=40.19.1" },
     { name = "freezegun", specifier = ">=1.5.5" },
