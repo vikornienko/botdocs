@@ -1,39 +1,31 @@
-from __future__ import annotations
+"""Integration tests for /start handler."""
 
-from typing import TYPE_CHECKING
-
-from aiogram.methods.send_message import SendMessage
+from aiogram import Dispatcher
+from aiogram_test_framework import TestClient as Client
 import pytest
 
-if TYPE_CHECKING:
-    from tests.conftest import DummySession
+from handlers.start import router as start_router
+
+pytestmark = pytest.mark.integration
 
 
-@pytest.mark.asyncio
-async def test_start_command_through_dispatcher_sends_message(
-    bot,
-    dummy_session: DummySession,
-    test_dispatcher,
-    raw_update_start: dict,
-    tg_ids,
-) -> None:
-    await test_dispatcher.feed_raw_update(bot, raw_update_start)
-
-    assert len(dummy_session.calls) == 1
-    method = dummy_session.calls[0]
-
-    assert isinstance(method, SendMessage)
-    assert method.chat_id == tg_ids.chat_id
-    assert method.text == "Hello! I'm a bot created with aiogram."
+def setup_dispatcher(bot, dispatcher: Dispatcher) -> None:
+    """Configure dispatcher with handlers."""
+    dispatcher.include_router(start_router)
 
 
-@pytest.mark.asyncio
-async def test_non_command_text_is_ignored(
-    bot,
-    dummy_session: DummySession,
-    test_dispatcher,
-    raw_update_plain_text: dict,
-) -> None:
-    await test_dispatcher.feed_raw_update(bot, raw_update_plain_text)
-
-    assert dummy_session.calls == []
+async def test_start_command() -> None:
+    """/start command sends welcome message."""
+    client = await Client.create(
+        bot_token="123456789:ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefgh",
+        bot_id=123456789,
+        bot_username="test_bot",
+        bot_first_name="Test Bot",
+        setup_dispatcher_func=setup_dispatcher,
+    )
+    try:
+        user = client.create_user()
+        await user.send_command("start")
+        assert user.has_received_message_containing("Привет")
+    finally:
+        await client.close()

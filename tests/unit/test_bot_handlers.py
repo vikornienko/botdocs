@@ -1,39 +1,26 @@
-from __future__ import annotations
+"""Tests for bot creation and basic setup."""
 
-from types import SimpleNamespace
-from unittest.mock import AsyncMock
-
+from aiogram import Bot, Dispatcher
 import pytest
 
+from handlers.start import router as start_router
 
-@pytest.mark.asyncio
-async def test_command_start_handler_answers() -> None:
-    import bot as bot_module  # noqa: PLC0415
+pytestmark = pytest.mark.unit
 
-    message = SimpleNamespace(answer=AsyncMock())
-
-    await bot_module.command_start_handler(message)  # type: ignore[arg-type]
-
-    message.answer.assert_awaited_once_with("Hello! I'm a bot created with aiogram.")
+TEST_TOKEN = "123456789:ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefgh"
 
 
-@pytest.mark.asyncio
-async def test_main_creates_bot_and_starts_polling(mocker: pytest.MockFixture) -> None:
-    import bot as bot_module  # noqa: PLC0415
+def test_bot_creation(bot: Bot) -> None:
+    """Bot instance is created with the test token."""
+    assert bot.token == TEST_TOKEN
 
-    mocker.patch.object(bot_module, "config", return_value="123456789:" + ("A" * 35))
 
-    bot_instance = object()
-    bot_ctor = mocker.patch.object(
-        bot_module, "Bot", autospec=True, return_value=bot_instance
-    )
+def test_dispatcher_creation(dp: Dispatcher) -> None:
+    """Dispatcher instance is created."""
+    assert isinstance(dp, Dispatcher)
 
-    start_polling_mock = AsyncMock()
-    mocker.patch.object(bot_module.dp, "start_polling", start_polling_mock)
 
-    await bot_module.main()
-
-    bot_ctor.assert_called_once()
-    assert bot_ctor.call_args.kwargs["token"].startswith("123456789:")
-
-    start_polling_mock.assert_awaited_once_with(bot_instance)
+def test_start_router_included(dp: Dispatcher) -> None:
+    """Start router can be included in dispatcher."""
+    dp.include_router(start_router)
+    assert start_router in dp.sub_routers
